@@ -197,9 +197,10 @@ func printGoToCommand(c *cli.Context) error {
 	}
 	path, err := db.GetProjectDir(c.Args()[0])
 	if err != nil {
-		fmt.Fprintln(os.Stdout, err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
+	} else {
+		log(fmt.Sprintf("cd %s", path), c)
 	}
-	log(fmt.Sprintf("cd %s", path), c)
 
 	return nil
 }
