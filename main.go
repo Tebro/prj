@@ -206,9 +206,9 @@ func printGoToCommand(c *cli.Context) error {
 
 func listProjects(c *cli.Context) error {
 	msg := fmt.Sprintf(
-		`Projects
-		--------
-		%s`, db.ListProjects())
+`Projects
+--------
+%s`, db.ListProjects())
 
 	log(msg, c)
 	return nil
