@@ -31,6 +31,7 @@ func main() {
 			Subcommands: []cli.Command{
 				{
 					Name:   "list",
+					Aliases: []string{"l", "ls"},
 					Usage:  "Lists all configuration options",
 					Action: listConfig,
 				},
