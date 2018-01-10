@@ -1,0 +1,14 @@
+language: go
+script:
+- go get ./...
+- go test ./...
+- CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o prj main.go
+
+deploy:
+  provider: releases
+  api_key:
+    secure: fYv9Y7Mmf/fM5r0RjRo8Ouh2nhKQo5+LEVHv8hblXfuRgrQ7a+RY92QD7sBT80QJjKgKWnwCn9qWLceym7ZVlKLcYDcgZRjiy3veYo7RNXhSZnG6IX4ALitJV4bunRQ6zHjMbPDtBYGe/513dD4edO8usedn9DS4milTW9LmR7rW6x2LIHrtMOoLIGUwH8kGaK+Rxs3Mn6XvNdGzPR+sxKziVv20iNoFCuzVH6aAGRyFScAJsNsQYbYEI1/a9Af/Bw/Sa2siY712O0KsfeeoJlvC0TyYdcyFt/GC/ci9lhltS3xOWF+4og1o4slh++ajZz7OvSuRBNeUqSYREoppCg8TQEzcikaKd62MD6LCk+XN67n8+TQruyfJHurQ+WcinQzuKt12/hb0SlHlrt6TooBqROva8micMtRy7PMToJdbwF9ZOUSa7dnp/OfJ+sLeV2vIZG0liKyfnikdmahBuhFYoUHMaOxjfjq7L3RbtZyNmYCIKHNobeOlGI6zzMsm4L4KNNWDqUKgzIGbwrAs34veozpMSz15LgdGylGUJDL9kDrACMUQp3YJLBnHYruhyjfxpSFhxmnQCdfGozqT17BSZLw5bVaaPicBvEVmqZZmC5T4AY4dg1O2gC4r/eyE8uFLbRyaFCf3KB7uYCLfgaYnRyU2EqiPsw5TkYrds08=
+  file: prj
+  on:
+    repo: Tebro/prj
+    tags: true
