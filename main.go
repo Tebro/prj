@@ -133,10 +133,35 @@ func shouldCreateGit(c *cli.Context) bool {
 	return c.Bool("git") || db.GetConfigAlwaysGit()
 }
 
+func createBaseDirIfNotExists(c *cli.Context) error {
+	path := db.GetConfigBaseDir()
+
+	if len(c.GlobalString("basedir")) > 0 {
+		path = c.GlobalString("basedir")
+	}
+
+	isDir, err := pathIsDir(path)
+	if err != nil {
+		return err
+	}
+	if !isDir {
+		err = os.MkdirAll(path, 0755)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func createNew(c *cli.Context) error {
 	if c.NArg() <= 0 {
 		log(c,"name is required")
 		return fmt.Errorf("name is required")
+	}
+
+	if err := createBaseDirIfNotExists(c); err != nil {
+		log(c, "Could find or create base dir: %s", err.Error())
+		return err
 	}
 
 	finalPath := getFinalPath(c)
