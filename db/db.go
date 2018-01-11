@@ -33,9 +33,14 @@ func (c *Config) SetAlwaysGit(v bool) {
 	c.AlwaysGit = v
 }
 
+type Project struct {
+	Name string
+	Path string
+}
+
 type Database struct {
 	Config   Config
-	Projects map[string]string
+	Projects map[string]Project
 }
 
 var configPath = filepath.Join(os.Getenv("HOME"), ".prj")
@@ -107,7 +112,7 @@ func createDefaultDatabase() Database {
 			BaseDir:   fmt.Sprintf("%s/%s", os.Getenv("HOME"), "Projects"),
 			AlwaysGit: false,
 		},
-		Projects: make(map[string]string),
+		Projects: make(map[string]Project),
 	}
 }
 
@@ -174,7 +179,7 @@ func AddProject(name string, path string) error {
 		return fmt.Errorf("project exists")
 	}
 
-	database.Projects[name] = path
+	database.Projects[name] = Project{Name:name, Path: path}
 
 	return nil
 }
@@ -182,15 +187,17 @@ func AddProject(name string, path string) error {
 func ListProjects() string {
 	retval := ""
 
-	var keys []string
-	for k := range database.Projects {
-		keys = append(keys, k)
+	var projects []Project
+	for _, v := range database.Projects {
+		projects = append(projects, v)
 	}
 
-	sort.Strings(keys)
+	sort.Slice(projects, func(a int, b int) bool {
+		return projects[a].Path < projects[b].Path
+	})
 
-	for _, k := range keys {
-		retval = fmt.Sprintf("%s%s: %s\n", retval, k, database.Projects[k])
+	for _, v := range projects {
+		retval = fmt.Sprintf("%s%s: %s\n", retval, v.Name, v.Path)
 	}
 
 	return retval
@@ -200,5 +207,5 @@ func GetProjectDir(name string) (string, error) {
 	if _, ok := database.Projects[name]; !ok {
 		return "", fmt.Errorf("project does not exists")
 	}
-	return database.Projects[name], nil
+	return database.Projects[name].Path, nil
 }
