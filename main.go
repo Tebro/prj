@@ -66,6 +66,12 @@ func main() {
 			Action: createNew,
 		},
 		{
+			Name: "add",
+			Usage: "Add existing directory to prj",
+			ArgsUsage: "[name] [path]",
+			Action: addExisting,
+		},
+		{
 			Name:      "goto",
 			Aliases:   []string{"g"},
 			Usage:     "Prints command to go to project directory, meant to be eval'ed",
@@ -214,5 +220,51 @@ func listProjects(c *cli.Context) error {
 %s`, db.ListProjects())
 
 	log(c, msg)
+	return nil
+}
+
+func pathIsDir(path string) (bool, error) {
+	stat, err := os.Stat(path)
+	if err == nil {
+		return stat.IsDir(), nil
+	}
+	return false, err
+}
+
+func addExisting(c *cli.Context) error {
+	if c.NArg() != 2 {
+		log(c,"Invalid number of arguments, expected 2")
+		return fmt.Errorf("invalid number of arguments")
+	}
+
+	name := c.Args()[0]
+	path := c.Args()[1]
+
+	exists, err := pathExists(path)
+	if err != nil {
+		log(c, "Could not determine if path exists: %s", err.Error())
+		return err
+	}
+	if !exists {
+		log(c, "Path '%s' does not exist, use 'prj new' to create a new project", path)
+		return fmt.Errorf("path does not exist")
+	}
+
+	isDir, err := pathIsDir(path)
+	if err != nil {
+		log(c, "Could not determine if path is a directory: %s", err)
+		return err
+	}
+	if !isDir {
+		log(c, "Path '%s' is not a directory", path)
+		return fmt.Errorf("not directory")
+	}
+
+	err = db.AddProject(name, path)
+	if err != nil {
+		log(c, "Could not add project: %s", err)
+		return err
+	}
+
 	return nil
 }
