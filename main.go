@@ -98,13 +98,20 @@ func main() {
 			Action:  listProjects,
 		},
 	}
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+	}
 	db.PrepareForShutdown()
 }
 
 
 func log(c *cli.Context, format string, args ...interface{}) {
 	fmt.Fprintf(c.App.Writer, format + "\n", args...)
+}
+
+func exitErrorWrapper(format string, args ...interface{}) *cli.ExitError {
+	return cli.NewExitError(fmt.Sprintf(format, args...), 1)
 }
 
 func getBaseDir(c *cli.Context) string {
@@ -168,41 +175,34 @@ func createBaseDirIfNotExists(c *cli.Context) error {
 
 func createNew(c *cli.Context) error {
 	if c.NArg() <= 0 {
-		log(c,"name is required")
-		return fmt.Errorf("name is required")
+		return exitErrorWrapper("name is required")
 	}
 
 	if err := createBaseDirIfNotExists(c); err != nil {
-		log(c, "Could find or create base dir: %s", err.Error())
-		return err
+		return exitErrorWrapper("could not find or create base dir : %s", err.Error())
 	}
 
 	finalPath := getFinalPath(c)
 
 	exists, err := pathExists(finalPath)
 	if err != nil {
-		log(c, err.Error())
 		return err
 	}
 
 	if exists {
-		err = fmt.Errorf("path %s exits", finalPath)
-		log(c, err.Error())
-		return err
+		return exitErrorWrapper("path %s exits", finalPath)
 	}
 
 	projectName := getProjectName(c)
 
 	err = db.AddProject(projectName, finalPath)
 	if err != nil {
-		log(c, err.Error())
 		return err
 	}
 
 	err = os.MkdirAll(finalPath, 0755)
 	if err != nil {
-		log(c,"Could not create project directory")
-		return err
+		return exitErrorWrapper("could not create project directory: %s", err.Error())
 	}
 
 	if shouldCreateGit(c) {
@@ -211,8 +211,9 @@ func createNew(c *cli.Context) error {
 		err := cmd.Run()
 		if err != nil {
 			log(c,"Failed to create git repository. Error %s", err.Error())
+		} else {
+			log(c,"Created Git repository")
 		}
-		log(c,"Creating Git repository")
 	}
 
 	log(c,"Created project")
@@ -227,8 +228,7 @@ func listConfig(c *cli.Context) error {
 
 func setConfig(c *cli.Context) error {
 	if c.NArg() != 2 {
-		log(c,"Invalid number of arguments, expected 2")
-		return fmt.Errorf("invalid number of arguments")
+		return exitErrorWrapper("invalid number of arguments, expected 2")
 	}
 
 	db.SetConfigOption(c.Args()[0], c.Args()[1])
@@ -238,12 +238,11 @@ func setConfig(c *cli.Context) error {
 
 func printGoToCommand(c *cli.Context) error {
 	if c.NArg() != 1 {
-		log(c,"Invalid number of arguments, expected 1")
-		return fmt.Errorf("invalid number of arguments")
+		return exitErrorWrapper("invalid number of arguments, expected 1")
 	}
 	path, err := db.GetProjectDir(c.Args()[0])
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		return err
 	} else {
 		log(c,"cd %s", path)
 	}
@@ -271,8 +270,7 @@ func pathIsDir(path string) (bool, error) {
 
 func addExisting(c *cli.Context) error {
 	if c.NArg() < 1 || c.NArg() > 2 {
-		log(c,"Invalid number of arguments, expected 1 or 2")
-		return fmt.Errorf("invalid number of arguments")
+		return exitErrorWrapper("invalid number of arguments, expected 1 or 2")
 	}
 
 	name := c.Args()[0]
@@ -283,36 +281,30 @@ func addExisting(c *cli.Context) error {
 	} else {
 		workDir, err := os.Getwd()
 		if err != nil {
-			log(c, "Could not retrieve current working directory: %s", err)
-			return err
+			return exitErrorWrapper("could not retrieve current working directory: %s", err.Error())
 		}
 		path = workDir
 	}
 
 	exists, err := pathExists(path)
 	if err != nil {
-		log(c, "Could not determine if path exists: %s", err.Error())
-		return err
+		return exitErrorWrapper("could not determine if path exists: %s", err.Error())
 	}
 	if !exists {
-		log(c, "Path '%s' does not exist, use 'prj new' to create a new project", path)
-		return fmt.Errorf("path does not exist")
+		return exitErrorWrapper("path '%s' does not exist, use 'prj new' to create a new project", path)
 	}
 
 	isDir, err := pathIsDir(path)
 	if err != nil {
-		log(c, "Could not determine if path is a directory: %s", err)
-		return err
+		return exitErrorWrapper("could not determine if path is a directory: %s", err)
 	}
 	if !isDir {
-		log(c, "Path '%s' is not a directory", path)
-		return fmt.Errorf("not directory")
+		return exitErrorWrapper("path '%s' is not a directory", path)
 	}
 
 	err = db.AddProject(name, path)
 	if err != nil {
-		log(c, "Could not add project: %s", err)
-		return err
+		return exitErrorWrapper("could not add project: %s", err)
 	}
 
 	return nil
@@ -320,22 +312,20 @@ func addExisting(c *cli.Context) error {
 
 func removeProject(c *cli.Context) error {
 	if c.NArg() != 1 {
-		log(c,"Invalid number of arguments, expected 1")
-		return fmt.Errorf("invalid number of arguments")
+		return exitErrorWrapper("invalid number of arguments, expected 1")
 	}
 
 	name := c.Args()[0]
 	path, err := db.GetProjectDir(name)
 	if err != nil {
-		log(c, "Could not delete project: %s", err.Error())
-		return err
+		return exitErrorWrapper("could not delete project: %s", err.Error())
 	}
 
 	if c.Bool("nocache") {
 		log(c, "Removing directory: %s", path)
 		os.RemoveAll(path)
 		if err != nil {
-			log(c, "Failed to remove project directory: %s", err.Error())
+			fmt.Fprintf(os.Stderr,"failed to remove project directory: %s", err.Error())
 		}
 	} else {
 		log(c, "Leaving directory in place")
