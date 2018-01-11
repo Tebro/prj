@@ -8,7 +8,7 @@ Just running the prj command will output the help text that should get you start
 
 ## Config
 
-Permanent configuration is stored under $HOME/.prj
+Permanent configuration is stored under $HOME/.prj/db.json
 
 To see available config options run
 

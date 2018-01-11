@@ -3,12 +3,16 @@ package db
 import (
 	"os"
 	"fmt"
-	"bytes"
-	"encoding/gob"
+	"encoding/json"
 	"io/ioutil"
 	"path/filepath"
 	"sort"
 )
+
+var configPath = filepath.Join(os.Getenv("HOME"), ".prj")
+var dbPath = filepath.Join(configPath, "db.json")
+var database Database
+
 
 type Config struct {
 	BaseDir   string
@@ -43,21 +47,15 @@ type Database struct {
 	Projects map[string]Project
 }
 
-var configPath = filepath.Join(os.Getenv("HOME"), ".prj")
-var dbPath = filepath.Join(configPath, "db")
-var database Database
 
 func serializeDatabase(db Database) ([]byte, error) {
-	b := new(bytes.Buffer)
-	e := gob.NewEncoder(b)
-	err := e.Encode(db)
-	return b.Bytes(), err
+	data, err := json.MarshalIndent(db, "", "    ")
+	return data, err
 }
 
 func deserializeDatabase(data []byte) (Database, error) {
 	var decoded Database
-	d := gob.NewDecoder(bytes.NewBuffer(data))
-	err := d.Decode(&decoded)
+	err := json.Unmarshal(data, &decoded)
 	return decoded, err
 }
 
