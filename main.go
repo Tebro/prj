@@ -52,7 +52,7 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringSliceFlag{
 					Name: "categories, c",
-					Usage: "Optional organising levels",
+					Usage: "Optional organising levels, each category gets created in between the base dir and actual project dir",
 				},
 				cli.BoolFlag{
 					Name:  "git, g",
