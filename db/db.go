@@ -29,14 +29,6 @@ AlwaysGit: %t
 `, c.BaseDir, c.AlwaysGit)
 }
 
-func (c *Config) SetBaseDir(v string) {
-	c.BaseDir = v
-}
-
-func (c *Config) SetAlwaysGit(v bool) {
-	c.AlwaysGit = v
-}
-
 type Project struct {
 	Name string
 	Path string
@@ -152,14 +144,14 @@ func GetConfigList() string {
 func SetConfigOption(key string, value string) {
 	switch key {
 	case "BaseDir":
-		database.Config.SetBaseDir(value)
+		database.Config.BaseDir = value
 		break
 	case "AlwaysGit":
 		converted := false
 		if value == "true" {
 			converted = true
 		}
-		database.Config.SetAlwaysGit(converted)
+		database.Config.AlwaysGit = converted
 		break
 	}
 }
