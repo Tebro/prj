@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"github.com/Tebro/prj/db"
 	"os/exec"
+	"strings"
 )
 
 func main() {
@@ -49,10 +50,9 @@ func main() {
 			Usage:     "Create a new project",
 			ArgsUsage: "[name]",
 			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "category, c",
-					Value: "",
-					Usage: "Optional 2nd level directory name for organizing projects",
+				cli.StringSliceFlag{
+					Name: "categories, c",
+					Usage: "Optional organising levels",
 				},
 				cli.BoolFlag{
 					Name:  "git, g",
@@ -97,10 +97,11 @@ func getBaseDir(c *cli.Context) string {
 
 func getFinalPath(c *cli.Context) string {
 	base := getBaseDir(c)
-	cat := c.String("category")
+	cats := c.StringSlice("categories")
+	catPath := strings.Join(cats, "/")
 	name := c.Args()[0]
 
-	return filepath.Join(base, cat, name)
+	return filepath.Join(base, catPath, name)
 }
 
 func pathExists(path string) (bool, error) {
