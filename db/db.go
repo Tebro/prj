@@ -147,10 +147,7 @@ func SetConfigOption(key string, value string) {
 		database.Config.BaseDir = value
 		break
 	case "AlwaysGit":
-		converted := false
-		if value == "true" {
-			converted = true
-		}
+		converted := value == "true"
 		database.Config.AlwaysGit = converted
 		break
 	}
