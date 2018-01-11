@@ -83,8 +83,9 @@ func main() {
 	db.PrepareForShutdown()
 }
 
-func log(in string, c *cli.Context) {
-	fmt.Fprintf(c.App.Writer, "%s\n", in)
+
+func log(c *cli.Context, format string, args ...interface{}) {
+	fmt.Fprintf(c.App.Writer, format + "\n", args...)
 }
 
 func getBaseDir(c *cli.Context) string {
@@ -127,7 +128,7 @@ func shouldCreateGit(c *cli.Context) bool {
 
 func createNew(c *cli.Context) error {
 	if c.NArg() <= 0 {
-		log("name is required", c)
+		log(c,"name is required")
 		return fmt.Errorf("name is required")
 	}
 
@@ -135,13 +136,13 @@ func createNew(c *cli.Context) error {
 
 	exists, err := pathExists(finalPath)
 	if err != nil {
-		log(err.Error(), c)
+		log(c, err.Error())
 		return err
 	}
 
 	if exists {
 		err = fmt.Errorf("path %s exits", finalPath)
-		log(err.Error(), c)
+		log(c, err.Error())
 		return err
 	}
 
@@ -149,13 +150,13 @@ func createNew(c *cli.Context) error {
 
 	err = db.AddProject(projectName, finalPath)
 	if err != nil {
-		log(err.Error(), c)
+		log(c, err.Error())
 		return err
 	}
 
 	err = os.MkdirAll(finalPath, 0755)
 	if err != nil {
-		log("Could not create project directory", c)
+		log(c,"Could not create project directory")
 		return err
 	}
 
@@ -164,24 +165,24 @@ func createNew(c *cli.Context) error {
 		cmd := exec.Command("git", "init")
 		err := cmd.Run()
 		if err != nil {
-			log(fmt.Sprintf("Failed to create git repository. Error %s", err.Error()), c)
+			log(c,"Failed to create git repository. Error %s", err.Error())
 		}
-		log("Creating Git repository", c)
+		log(c,"Creating Git repository")
 	}
 
-	log("Created project", c)
+	log(c,"Created project")
 
 	return nil
 }
 
 func listConfig(c *cli.Context) error {
-	log(db.GetConfigList(), c)
+	log(c, db.GetConfigList())
 	return nil
 }
 
 func setConfig(c *cli.Context) error {
 	if c.NArg() != 2 {
-		log("Invalid number of arguments, expected 2", c)
+		log(c,"Invalid number of arguments, expected 2")
 		return fmt.Errorf("invalid number of arguments")
 	}
 
@@ -192,14 +193,14 @@ func setConfig(c *cli.Context) error {
 
 func printGoToCommand(c *cli.Context) error {
 	if c.NArg() != 1 {
-		log("Invalid number of arguments, expected 1", c)
+		log(c,"Invalid number of arguments, expected 1")
 		return fmt.Errorf("invalid number of arguments")
 	}
 	path, err := db.GetProjectDir(c.Args()[0])
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 	} else {
-		log(fmt.Sprintf("cd %s", path), c)
+		log(c,"cd %s", path)
 	}
 
 	return nil
@@ -211,6 +212,6 @@ func listProjects(c *cli.Context) error {
 --------
 %s`, db.ListProjects())
 
-	log(msg, c)
+	log(c, msg)
 	return nil
 }
