@@ -13,7 +13,7 @@ import (
 func main() {
 
 	app := cli.NewApp()
-	app.Version = "0.5.0"
+	app.Version = "0.5.1"
 	app.Name = "prj"
 	app.Description = "A project management tool"
 	app.EnableBashCompletion = true
@@ -67,8 +67,8 @@ func main() {
 		},
 		{
 			Name: "add",
-			Usage: "Add existing directory to prj",
-			ArgsUsage: "[name] [path]",
+			Usage: "Add existing directory to prj. If path is left out the current directory will be used.",
+			ArgsUsage: "[name] <[path]>",
 			Action: addExisting,
 		},
 		{
@@ -270,13 +270,24 @@ func pathIsDir(path string) (bool, error) {
 }
 
 func addExisting(c *cli.Context) error {
-	if c.NArg() != 2 {
-		log(c,"Invalid number of arguments, expected 2")
+	if c.NArg() < 1 || c.NArg() > 2 {
+		log(c,"Invalid number of arguments, expected 1 or 2")
 		return fmt.Errorf("invalid number of arguments")
 	}
 
 	name := c.Args()[0]
-	path := c.Args()[1]
+
+	var path string
+	if c.NArg() > 1 {
+		path = c.Args()[1]
+	} else {
+		workDir, err := os.Getwd()
+		if err != nil {
+			log(c, "Could not retrieve current working directory: %s", err)
+			return err
+		}
+		path = workDir
+	}
 
 	exists, err := pathExists(path)
 	if err != nil {
