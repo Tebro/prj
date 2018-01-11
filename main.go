@@ -59,7 +59,7 @@ func main() {
 					Usage: "Create a git repository",
 				},
 				cli.StringFlag{
-					Name:  "name",
+					Name:  "name, n",
 					Usage: "Explicitly set name of project for database (when names might otherwise clash)",
 				},
 			},
