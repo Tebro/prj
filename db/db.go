@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 	"io/ioutil"
 	"path/filepath"
+	"sort"
 )
 
 type Config struct {
@@ -180,9 +181,18 @@ func AddProject(name string, path string) error {
 
 func ListProjects() string {
 	retval := ""
-	for k, v := range database.Projects {
-		retval = fmt.Sprintf("%s%s: %s\n", retval, k, v)
+
+	var keys []string
+	for k := range database.Projects {
+		keys = append(keys, k)
 	}
+
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		retval = fmt.Sprintf("%s%s: %s\n", retval, k, database.Projects[k])
+	}
+
 	return retval
 }
 
