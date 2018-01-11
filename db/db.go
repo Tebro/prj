@@ -209,3 +209,7 @@ func GetProjectDir(name string) (string, error) {
 	}
 	return database.Projects[name].Path, nil
 }
+
+func DeleteProject(name string) {
+	delete(database.Projects, name)
+}

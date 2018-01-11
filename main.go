@@ -72,6 +72,19 @@ func main() {
 			Action: addExisting,
 		},
 		{
+			Name: "delete",
+			Aliases: []string{"remove", "rm"},
+			Usage: "Remove a project from prj",
+			ArgsUsage: "[name]",
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name: "nocache, f",
+					Usage: "Also remove the directory",
+				},
+			},
+			Action: removeProject,
+		},
+		{
 			Name:      "goto",
 			Aliases:   []string{"g"},
 			Usage:     "Prints command to go to project directory, meant to be eval'ed",
@@ -290,6 +303,35 @@ func addExisting(c *cli.Context) error {
 		log(c, "Could not add project: %s", err)
 		return err
 	}
+
+	return nil
+}
+
+func removeProject(c *cli.Context) error {
+	if c.NArg() != 1 {
+		log(c,"Invalid number of arguments, expected 1")
+		return fmt.Errorf("invalid number of arguments")
+	}
+
+	name := c.Args()[0]
+	path, err := db.GetProjectDir(name)
+	if err != nil {
+		log(c, "Could not delete project: %s", err.Error())
+		return err
+	}
+
+	if c.Bool("nocache") {
+		log(c, "Removing directory: %s", path)
+		os.RemoveAll(path)
+		if err != nil {
+			log(c, "Failed to remove project directory: %s", err.Error())
+		}
+	} else {
+		log(c, "Leaving directory in place")
+	}
+
+	db.DeleteProject(name)
+	log(c, "Project: '%s' deleted", name)
 
 	return nil
 }
