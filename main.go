@@ -249,10 +249,10 @@ func printGoToCommand(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	log(c, "cd %s", path)
+	log(c, "cd %s;", path)
 	if c.Bool("editor") {
 		editor := os.Getenv("EDITOR")
-		format := "%s . %s"
+		format := "%s . %s;"
 		inBackground := ""
 		if db.GetConfigEditorInBackground() {
 			inBackground = "&"
