@@ -1,10 +1,10 @@
 package db
 
 import (
-	"os"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sort"
 )
@@ -13,20 +13,21 @@ var configPath = filepath.Join(os.Getenv("HOME"), ".prj")
 var dbPath = filepath.Join(configPath, "db.json")
 var database Database
 
-
 type Config struct {
-	BaseDir   string
-	AlwaysGit bool
+	BaseDir            string
+	AlwaysGit          bool
+	EditorInBackground bool
 }
 
 func (c Config) String() string {
 	return fmt.Sprintf(
-`Configuration options
+		`Configuration options
 Name: value
 -----------
 BaseDir: %s
 AlwaysGit: %t
-`, c.BaseDir, c.AlwaysGit)
+EditorInBackground: %t
+`, c.BaseDir, c.AlwaysGit, c.EditorInBackground)
 }
 
 type Project struct {
@@ -38,7 +39,6 @@ type Database struct {
 	Config   Config
 	Projects map[string]Project
 }
-
 
 func serializeDatabase(db Database) ([]byte, error) {
 	data, err := json.MarshalIndent(db, "", "    ")
@@ -63,7 +63,7 @@ func saveDatabase(db Database) {
 	}
 }
 
-func loadDatabase() (Database) {
+func loadDatabase() Database {
 	data, err := ioutil.ReadFile(dbPath)
 	if err != nil {
 		panic("Could not load existing database")
@@ -99,8 +99,9 @@ func databaseExists() bool {
 func createDefaultDatabase() Database {
 	return Database{
 		Config: Config{
-			BaseDir:   fmt.Sprintf("%s/%s", os.Getenv("HOME"), "Projects"),
-			AlwaysGit: false,
+			BaseDir:            fmt.Sprintf("%s/%s", os.Getenv("HOME"), "Projects"),
+			AlwaysGit:          false,
+			EditorInBackground: false,
 		},
 		Projects: make(map[string]Project),
 	}
@@ -150,6 +151,9 @@ func SetConfigOption(key string, value string) {
 		converted := value == "true"
 		database.Config.AlwaysGit = converted
 		break
+	case "EditorInBackground":
+		database.Config.EditorInBackground = value == "true"
+		break
 	}
 }
 
@@ -161,12 +165,16 @@ func GetConfigAlwaysGit() bool {
 	return database.Config.AlwaysGit
 }
 
+func GetConfigEditorInBackground() bool {
+	return database.Config.EditorInBackground
+}
+
 func AddProject(name string, path string) error {
 	if _, ok := database.Projects[name]; ok {
 		return fmt.Errorf("project exists")
 	}
 
-	database.Projects[name] = Project{Name:name, Path: path}
+	database.Projects[name] = Project{Name: name, Path: path}
 
 	return nil
 }

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"gopkg.in/urfave/cli.v1"
 	"fmt"
-	"os"
-	"path/filepath"
 	"github.com/Tebro/prj/db"
+	"gopkg.in/urfave/cli.v1"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -31,10 +31,10 @@ func main() {
 			Usage: "change configuration options",
 			Subcommands: []cli.Command{
 				{
-					Name:   "list",
+					Name:    "list",
 					Aliases: []string{"l", "ls"},
-					Usage:  "Lists all configuration options",
-					Action: listConfig,
+					Usage:   "Lists all configuration options",
+					Action:  listConfig,
 				},
 				{
 					Name:      "set",
@@ -51,7 +51,7 @@ func main() {
 			ArgsUsage: "[name]",
 			Flags: []cli.Flag{
 				cli.StringSliceFlag{
-					Name: "categories, c",
+					Name:  "categories, c",
 					Usage: "Optional organising levels, each category gets created in between the base dir and actual project dir",
 				},
 				cli.BoolFlag{
@@ -66,19 +66,19 @@ func main() {
 			Action: createNew,
 		},
 		{
-			Name: "add",
-			Usage: "Add existing directory to prj. If path is left out the current directory will be used.",
+			Name:      "add",
+			Usage:     "Add existing directory to prj. If path is left out the current directory will be used.",
 			ArgsUsage: "[name] <[path]>",
-			Action: addExisting,
+			Action:    addExisting,
 		},
 		{
-			Name: "delete",
-			Aliases: []string{"remove", "rm"},
-			Usage: "Remove a project from prj",
+			Name:      "delete",
+			Aliases:   []string{"remove", "rm"},
+			Usage:     "Remove a project from prj",
 			ArgsUsage: "[name]",
 			Flags: []cli.Flag{
 				cli.BoolFlag{
-					Name: "nocache, f",
+					Name:  "nocache, f",
 					Usage: "Also remove the directory",
 				},
 			},
@@ -90,6 +90,12 @@ func main() {
 			Usage:     "Prints command to go to project directory, meant to be eval'ed",
 			ArgsUsage: "[name]",
 			Action:    printGoToCommand,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "editor, e",
+					Usage: "Add $EDITOR startup command to the output",
+				},
+			},
 		},
 		{
 			Name:    "list",
@@ -105,9 +111,8 @@ func main() {
 	db.PrepareForShutdown()
 }
 
-
 func log(c *cli.Context, format string, args ...interface{}) {
-	fmt.Fprintf(c.App.Writer, format + "\n", args...)
+	fmt.Fprintf(c.App.Writer, format+"\n", args...)
 }
 
 func exitErrorWrapper(format string, args ...interface{}) *cli.ExitError {
@@ -210,13 +215,13 @@ func createNew(c *cli.Context) error {
 		cmd := exec.Command("git", "init")
 		err := cmd.Run()
 		if err != nil {
-			log(c,"Failed to create git repository. Error %s", err.Error())
+			log(c, "Failed to create git repository. Error %s", err.Error())
 		} else {
-			log(c,"Created Git repository")
+			log(c, "Created Git repository")
 		}
 	}
 
-	log(c,"Created project")
+	log(c, "Created project")
 
 	return nil
 }
@@ -243,8 +248,17 @@ func printGoToCommand(c *cli.Context) error {
 	path, err := db.GetProjectDir(c.Args()[0])
 	if err != nil {
 		return err
-	} else {
-		log(c,"cd %s", path)
+	}
+	log(c, "cd %s", path)
+	if c.Bool("editor") {
+		editor := os.Getenv("EDITOR")
+		format := "%s . %s"
+		inBackground := ""
+		if db.GetConfigEditorInBackground() {
+			inBackground = "&"
+		}
+
+		log(c, format, editor, inBackground)
 	}
 
 	return nil
@@ -252,7 +266,7 @@ func printGoToCommand(c *cli.Context) error {
 
 func listProjects(c *cli.Context) error {
 	msg := fmt.Sprintf(
-`Projects
+		`Projects
 --------
 %s`, db.ListProjects())
 
@@ -325,7 +339,7 @@ func removeProject(c *cli.Context) error {
 		log(c, "Removing directory: %s", path)
 		os.RemoveAll(path)
 		if err != nil {
-			fmt.Fprintf(os.Stderr,"failed to remove project directory: %s", err.Error())
+			fmt.Fprintf(os.Stderr, "failed to remove project directory: %s", err.Error())
 		}
 	} else {
 		log(c, "Leaving directory in place")
