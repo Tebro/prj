@@ -13,6 +13,7 @@ var configPath = filepath.Join(os.Getenv("HOME"), ".prj")
 var dbPath = filepath.Join(configPath, "db.json")
 var database Database
 
+// Config contains various configuratble variables
 type Config struct {
 	BaseDir            string
 	AlwaysGit          bool
@@ -30,11 +31,13 @@ EditorInBackground: %t
 `, c.BaseDir, c.AlwaysGit, c.EditorInBackground)
 }
 
+// Project describes a Project, contains a name and a path
 type Project struct {
 	Name string
 	Path string
 }
 
+// Database is the top level object that the software uses to persist data and configuration
 type Database struct {
 	Config   Config
 	Projects map[string]Project
@@ -134,14 +137,17 @@ func init() {
 	}
 }
 
+// PrepareForShutdown tells the db package to save the database to disk in preparation for program termination. Should be the last call before the program exits.
 func PrepareForShutdown() {
 	saveDatabase(database)
 }
 
+// GetConfigList returns the Config objects String representation from the database.
 func GetConfigList() string {
 	return database.Config.String()
 }
 
+// SetConfigOption is a wrapper for modifying the Config part of the database.
 func SetConfigOption(key string, value string) {
 	switch key {
 	case "BaseDir":
@@ -157,18 +163,22 @@ func SetConfigOption(key string, value string) {
 	}
 }
 
+// GetConfigBaseDir returns the BaseDir option from the configuration
 func GetConfigBaseDir() string {
 	return database.Config.BaseDir
 }
 
+// GetConfigAlwaysGit returns the AlwaysGit option from the configuration
 func GetConfigAlwaysGit() bool {
 	return database.Config.AlwaysGit
 }
 
+// GetConfigEditorInBackground returns the EditorInBackground option from the configuration
 func GetConfigEditorInBackground() bool {
 	return database.Config.EditorInBackground
 }
 
+// AddProject adds a new Project to the Database
 func AddProject(name string, path string) error {
 	if _, ok := database.Projects[name]; ok {
 		return fmt.Errorf("project exists")
@@ -179,6 +189,7 @@ func AddProject(name string, path string) error {
 	return nil
 }
 
+// ListProjects returns a string representation of all the projects in the Database
 func ListProjects() string {
 	retval := ""
 
@@ -198,6 +209,7 @@ func ListProjects() string {
 	return retval
 }
 
+// GetProjectDir returns the path of a project identified by name
 func GetProjectDir(name string) (string, error) {
 	if _, ok := database.Projects[name]; !ok {
 		return "", fmt.Errorf("project does not exists")
@@ -205,6 +217,7 @@ func GetProjectDir(name string) (string, error) {
 	return database.Projects[name].Path, nil
 }
 
+// DeleteProject deletes a project from the Database
 func DeleteProject(name string) {
 	delete(database.Projects, name)
 }
