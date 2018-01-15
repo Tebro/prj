@@ -24,7 +24,7 @@ So to set AlwaysGit to true (create git repository for every project by default)
 If you want to use the `prj goto` command without having to type out the `eval $(prj goto projectname)` you can create the following function in your .bashrc/.zshrc
 
     function goto {
-        eval $(prj goto $1)
+        eval $(prj goto $@)
     }
     
 Then you can simply type `goto projectname`
