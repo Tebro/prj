@@ -189,14 +189,20 @@ func AddProject(name string, path string) error {
 	return nil
 }
 
-// ListProjects returns a string representation of all the projects in the Database
-func ListProjects() string {
-	retval := ""
-
+// GetProjects returns a list of all projects in the Database
+func GetProjects() []Project {
 	var projects []Project
 	for _, v := range database.Projects {
 		projects = append(projects, v)
 	}
+	return projects
+}
+
+// ListProjects returns a string representation of all the projects in the Database
+func ListProjects() string {
+	retval := ""
+
+	projects := GetProjects()
 
 	sort.Slice(projects, func(a int, b int) bool {
 		return projects[a].Path < projects[b].Path

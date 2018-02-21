@@ -13,7 +13,7 @@ import (
 func main() {
 
 	app := cli.NewApp()
-	app.Version = "0.5.3"
+	app.Version = "0.5.5"
 	app.Name = "prj"
 	app.Description = "A project management tool"
 	app.EnableBashCompletion = true
@@ -95,6 +95,12 @@ func main() {
 					Name:  "editor, e",
 					Usage: "Add $EDITOR startup command to the output",
 				},
+			},
+			BashComplete: func(c *cli.Context) {
+				projects := db.GetProjects()
+				for _, p := range projects {
+					fmt.Println(p.Name)
+				}
 			},
 		},
 		{
