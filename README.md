@@ -19,6 +19,16 @@ So to set AlwaysGit to true (create git repository for every project by default)
     prj config set AlwaysGit true
 
 
+### Autocompletion
+
+The releases page also contain autocomplete scripts for zsh and bash. These are redistributed from the [urfave/cli](https://github.com/urfave/cli) project.
+
+To enable autocompletion source the file with the PROG environment variable set to prj.
+
+```
+PROG=prj source /path/to/bash_completion
+```
+
 #### Shell helper
 
 If you want to use the `prj goto` command without having to type out the `eval $(prj goto projectname)` you can create the following function in your .bashrc/.zshrc
@@ -28,3 +38,5 @@ If you want to use the `prj goto` command without having to type out the `eval $
     }
     
 Then you can simply type `goto projectname`
+
+This does not support the bash completion
